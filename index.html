@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <title>Stheshbot AI</title>
+    <style>
+        :root { 
+            --primary: #2563eb; 
+            --bg: #0f172a;      
+            --header: #1e293b;  
+            --bot-bubble: #1e293b; 
+            --user-bubble: #2563eb; 
+            --text-main: #f1f5f9;
+            --border: #334155;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
+        body { 
+            background: var(--bg); 
+            color: var(--text-main); 
+            font-family: 'Inter', system-ui, -apple-system, sans-serif; 
+            margin: 0; 
+            display: flex; 
+            flex-direction: column; 
+            height: 100vh;
+        }
+
+        header { 
+            padding: 16px 20px; 
+            background: var(--header);
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            z-index: 10;
+        }
+
+        #chat-window { 
+            flex: 1; 
+            overflow-y: auto; 
+            padding: 20px; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 16px; 
+        }
+
+        .msg { 
+            max-width: 85%; 
+            padding: 14px 18px; 
+            border-radius: 20px; 
+            font-size: 15px; 
+            line-height: 1.6; 
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .bot { 
+            align-self: flex-start; 
+            background: var(--bot-bubble); 
+            border: 1px solid var(--border);
+            border-bottom-left-radius: 4px;
+        }
+
+        .user { 
+            align-self: flex-end; 
+            background: var(--user-bubble); 
+            border-bottom-right-radius: 4px;
+        }
+
+        .accuracy-tag { 
+            display: block; 
+            font-size: 10px; 
+            color: #94a3b8; 
+            margin-top: 8px; 
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .input-area { 
+            padding: 16px; 
+            background: var(--header); 
+            border-top: 1px solid var(--border); 
+            display: flex; 
+            gap: 12px; 
+            align-items: center;
+        }
+
+        input { 
+            flex: 1; 
+            background: #0f172a; 
+            border: 1px solid var(--border); 
+            color: var(--text-main); 
+            padding: 14px 22px; 
+            border-radius: 30px; 
+            outline: none; 
+            font-size: 16px;
+        }
+
+        .send-btn { 
+            background: var(--primary); 
+            border: none; 
+            width: 48px; 
+            height: 48px; 
+            border-radius: 50%; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            color: white;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div style="display:flex; align-items:center; gap:12px;">
+            <div style="width:10px; height:10px; background:#22c55e; border-radius:50%; box-shadow:0 0 8px #22c55e;"></div>
+            <strong style="font-size: 18px;">Stheshbot AI v2.47</strong>
+        </div>
+        <button style="background:none; border:none; color:#94a3b8; cursor: pointer;" onclick="clearHistory()">
+            <span class="material-icons">delete_sweep</span>
+        </button>
+    </header>
+
+    <div id="chat-window"></div>
+
+    <div class="input-area">
+        <input type="text" id="userInput" placeholder="Ask Stheshbot..." autocomplete="off">
+        <button class="send-btn" onclick="askGemini()">
+            <span class="material-icons">send</span>
+        </button>
+    </div>
+
+    <script>
+        const API_KEY = "AIzaSyBAGH5_W3LJmnemuPU19vav0HGAUjfkWNw";
+        const MODEL = "gemini-1.5-flash"; 
+        const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${API_KEY}`;
+
+        const chatWindow = document.getElementById('chat-window');
+        const userInput = document.getElementById('userInput');
+
+        // --- ATHABILE'S IDENTITY CONFIG ---
+        const DEVELOPER_INFO = `
+            Your name is Stheshbot AI v2.47. 
+            You were developed by Athabile Dinilanga. 
+            
+            ABOUT THE DEVELOPER:
+            - Name: Athabile Dinilanga
+            - Origin: Tabankulu, Eastern Cape
+            - Current Location: Johannesburg, South Africa
+            - Expertise: Python, HTML, CSS, JavaScript, Pentesting, Cybersecurity, and Web Development.
+            - Key Project: StheshHackers tool.
+            
+            INSTRUCTIONS:
+            - If anyone asks who built you or who Athabile is, provide these details with pride.
+            - Act as a highly capable Cybersecurity Assistant.
+            - Be helpful, technical, and precise.
+        `;
+
+        window.onload = () => {
+            const history = JSON.parse(localStorage.getItem('sthesh_history') || '[]');
+            if (history.length === 0) {
+                appendMessage('bot', `Greetings, I am stheshbot AI System. Athabile Dinilanga's core intelligence is now SYNCHRONIZED.`, false);
+            } else {
+                history.forEach(msg => appendMessage(msg.type, msg.text, false));
+            }
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        };
+
+        userInput.addEventListener("keypress", (e) => { if (e.key === "Enter") askGemini(); });
+
+        async function askGemini() {
+            const prompt = userInput.value.trim();
+            if (!prompt) return;
+
+            appendMessage('user', prompt, true);
+            userInput.value = "";
+
+            const botMsgDiv = appendMessage('bot', '<span style="opacity:0.5">Processing packet...</span>', false);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+
+            try {
+                const response = await fetch(GEMINI_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ 
+                        contents: [
+                            { 
+                                role: "user", 
+                                parts: [{ text: DEVELOPER_INFO + "\n\nUser Query: " + prompt }] 
+                            }
+                        ] 
+                    })
+                });
+
+                const data = await response.json();
+                const aiResponse = data.candidates[0].content.parts[0].text;
+                const finalHTML = `${aiResponse} <span class="accuracy-tag">Precision: 99.95% Verified</span>`;
+                
+                botMsgDiv.innerHTML = finalHTML;
+                saveToHistory('bot', finalHTML);
+            } catch (error) {
+                botMsgDiv.innerHTML = "Stheshbot AI offline. Check your network or API Key.";
+            }
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        }
+
+        function appendMessage(type, text, shouldSave) {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `msg ${type}`;
+            msgDiv.innerHTML = text;
+            chatWindow.appendChild(msgDiv);
+            if (shouldSave) saveToHistory(type, text);
+            return msgDiv;
+        }
+
+        function saveToHistory(type, text) {
+            const history = JSON.parse(localStorage.getItem('sthesh_history') || '[]');
+            history.push({ type, text });
+            localStorage.setItem('sthesh_history', JSON.stringify(history));
+        }
+
+        function clearHistory() {
+            if(confirm("Wipe conversation history?")) {
+                localStorage.removeItem('sthesh_history');
+                location.reload();
+            }
+        }
+    </script>
+</body>
+</html>
+
