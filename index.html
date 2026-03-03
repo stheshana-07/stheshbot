@@ -173,37 +173,33 @@
         userInput.addEventListener("keypress", (e) => { if (e.key === "Enter") askGemini(); });
 
         async function askGemini() {
-            const prompt = userInput.value.trim();
-            if (!prompt) return;
-
-            appendMessage('user', prompt, true);
+            const promptText = userInput.value.trim();
+            if (!promptText) return;
+        
+            appendMessage('user', promptText, true);
             userInput.value = "";
-
+        
             const botMsgDiv = appendMessage('bot', '<span style="opacity:0.5">Processing packet...</span>', false);
             chatWindow.scrollTop = chatWindow.scrollHeight;
-
+        
             try {
-                const response = await fetch(GEMINI_URL, {
+                // We call our OWN local API route, not Google's
+                const response = await fetch("/api/chat", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ 
-                        contents: [
-                            { 
-                                role: "user", 
-                                parts: [{ text: DEVELOPER_INFO + "\n\nUser Query: " + prompt }] 
-                            }
-                        ] 
+                        prompt: promptText,
+                        developerInfo: DEVELOPER_INFO 
                     })
                 });
-
+        
                 const data = await response.json();
                 const aiResponse = data.candidates[0].content.parts[0].text;
-                const finalHTML = `${aiResponse} <span class="accuracy-tag">Precision: 99.95% Verified</span>`;
                 
-                botMsgDiv.innerHTML = finalHTML;
-                saveToHistory('bot', finalHTML);
+                botMsgDiv.innerHTML = aiResponse + ` <span class="accuracy-tag">Precision: 99.95% Verified</span>`;
+                saveToHistory('bot', aiResponse);
             } catch (error) {
-                botMsgDiv.innerHTML = "STHESHBOT AI NOT OFFLINE AND DESYNCHRONIZED. PLEASE TRY AGAIN LATER";
+                botMsgDiv.innerHTML = "Stheshbot AI offline. Server connection failed.";
             }
             chatWindow.scrollTop = chatWindow.scrollHeight;
         }
