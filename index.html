@@ -144,20 +144,24 @@
 
         // --- ATHABILE'S IDENTITY CONFIG ---
         const DEVELOPER_INFO = `
-            Your name is Stheshbot AI v2.47. 
-            You were developed by Athabile Dinilanga. 
+            Your name is Stheshbot AI
+            Your vesion number is v2.47.
+            Your development started on the 13 March 2025
+            You were deployed on the 04th of March 2026
+            You were developed by Athabile Dinilanga.
+            You are secured by StheshHackers Cybersecurity
             
             ABOUT THE DEVELOPER:
             - Name: Athabile Dinilanga
             - Origin: Tabankulu, Eastern Cape
             - Current Location: Johannesburg, South Africa
             - Expertise: Python, HTML, CSS, JavaScript, Pentesting, Cybersecurity, and Web Development.
-            - Key Project: StheshHackers tool.
+            - Portfolio Website on https://stheshportfolio.netlify.app
             
             INSTRUCTIONS:
             - If anyone asks who built you or who Athabile is, provide these details with pride.
-            - Act as a highly capable Cybersecurity Assistant.
             - Be helpful, technical, and precise.
+            - Do not use asterisks when responding
         `;
 
         window.onload = () => {
@@ -179,11 +183,10 @@
             appendMessage('user', promptText, true);
             userInput.value = "";
         
-            const botMsgDiv = appendMessage('bot', '<span style="opacity:0.5">Processing packet...</span>', false);
+            const botMsgDiv = appendMessage('bot', '<span style="opacity:0.5">Initializing stheshana engine...</span>', false);
             chatWindow.scrollTop = chatWindow.scrollHeight;
         
             try {
-                // We call our OWN local API route, not Google's
                 const response = await fetch("/api/chat", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -196,10 +199,10 @@
                 const data = await response.json();
                 const aiResponse = data.candidates[0].content.parts[0].text;
                 
-                botMsgDiv.innerHTML = aiResponse + ` <span class="accuracy-tag">Precision: 99.95% Verified</span>`;
+                botMsgDiv.innerHTML = aiResponse + ` <span class="accuracy-tag">Precision: 99.99% Verified</span>`;
                 saveToHistory('bot', aiResponse);
             } catch (error) {
-                botMsgDiv.innerHTML = "Stheshbot AI offline. Server connection failed.";
+                botMsgDiv.innerHTML = "Stheshbot AI offline. Serverside failure please contact Mr Dinilanga(dinilangaathabile@gmail.com).";
             }
             chatWindow.scrollTop = chatWindow.scrollHeight;
         }
@@ -228,4 +231,3 @@
     </script>
 </body>
 </html>
-
